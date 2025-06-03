@@ -5,7 +5,7 @@ js {
     publish(`${client.name}_conversions`, {
       type: "view",
       schema: client.output_schema
-    }).query(ctx => `
+    }).query(() => `
       SELECT
         user_pseudo_id,
         event_name,
@@ -17,7 +17,7 @@ js {
         geo.region,
         (SELECT value.int_value FROM UNNEST(event_params) WHERE key = "value") AS revenue,
         (SELECT value.string_value FROM UNNEST(event_params) WHERE key = "currency") AS currency
-      FROM \`${ctx.project}.${client.source_dataset}.events_*\`
+      FROM \`${client.project_id}.${client.source_dataset}.events_*\`
       WHERE event_name IN ("purchase", "generate_lead")
     `);
   }
