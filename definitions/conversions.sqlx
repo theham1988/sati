@@ -5,7 +5,7 @@ js {
     publish(`${client.name}_conversions`, {
       type: "view",
       schema: client.output_schema
-    }).query(() => `
+    }).query(ctx => `
       SELECT
         user_pseudo_id,
         event_name,
