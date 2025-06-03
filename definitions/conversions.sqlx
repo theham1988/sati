@@ -2,27 +2,23 @@ js {
   const clients = require("includes/clients.js");
 
   for (const client of clients) {
-    const tableRef = `${client.source_dataset}.events_*`;
-
     publish(`${client.name}_conversions`, {
       type: "view",
       schema: client.output_schema
     }).query(ctx => `
-      select
+      SELECT
         user_pseudo_id,
         event_name,
         event_timestamp,
-        traffic_source.source as source,
-        traffic_source.medium as medium,
-        traffic_source.name as campaign,
+        traffic_source.source AS source,
+        traffic_source.medium AS medium,
+        traffic_source.name AS campaign,
         geo.country,
         geo.region,
-        (select value.int_value from unnest(event_params) where key = "value") as revenue,
-        (select value.string_value from unnest(event_params) where key = "currency") as currency
-      from
-        \`${ctx.project}.\${tableRef}\`
-      where
-        event_name in ("purchase", "generate_lead")
+        (SELECT value.int_value FROM UNNEST(event_params) WHERE key = "value") AS revenue,
+        (SELECT value.string_value FROM UNNEST(event_params) WHERE key = "currency") AS currency
+      FROM \`${ctx.project}.${client.source_dataset}.events_*\`
+      WHERE event_name IN ("purchase", "generate_lead")
     `);
   }
 }
