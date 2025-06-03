@@ -1,4 +1,4 @@
-js {
+
   const clients = require("includes/clients.js");
 
   for (const client of clients) {
@@ -17,4 +17,4 @@ js {
       GROUP BY user_pseudo_id
     `);
   }
-}
+

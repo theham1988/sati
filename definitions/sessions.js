@@ -1,4 +1,4 @@
-js {
+
   const clients = require("includes/clients.js");
 
   for (const client of clients) {
@@ -22,4 +22,3 @@ js {
       WHERE event_name = "session_start"
     `);
   }
-}
