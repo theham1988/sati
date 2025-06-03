@@ -16,7 +16,7 @@ js {
         array_agg(distinct device.category)[offset(0)] as device,
         array_agg(distinct geo.country)[offset(0)] as country
       from
-        \`${ctx.project}.${tableRef}\`
+        ${ctx.project}.${tableRef}
       group by
         user_pseudo_id
     `);
