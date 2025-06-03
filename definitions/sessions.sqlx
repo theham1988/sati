@@ -1,0 +1,29 @@
+js {
+  const clients = require("includes/clients.js");
+
+  for (const client of clients) {
+    const tableRef = `${client.source_dataset}.events_*`;
+
+    publish(`${client.name}_sessions`, {
+      type: "view",
+      schema: client.output_schema
+    }).query(ctx => `
+      select
+        user_pseudo_id,
+        event_bundle_sequence_id,
+        event_timestamp,
+        traffic_source.source as source,
+        traffic_source.medium as medium,
+        traffic_source.name as campaign,
+        device.category as device_category,
+        geo.country,
+        geo.region,
+        event_date,
+        (select value.string_value from unnest(event_params) where key = "page_location") as page_location
+      from
+        \`${ctx.project}.${tableRef}\`
+      where
+        event_name = "session_start"
+    `);
+  }
+}

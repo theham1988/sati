@@ -1,0 +1,24 @@
+js {
+  const clients = require("includes/clients.js");
+
+  for (const client of clients) {
+    const tableRef = `${client.source_dataset}.events_*`;
+
+    publish(`${client.name}_users`, {
+      type: "view",
+      schema: client.output_schema
+    }).query(ctx => `
+      select
+        user_pseudo_id,
+        max(user_first_touch_timestamp) as first_touch,
+        count(distinct event_name) as event_count,
+        count(distinct event_date) as active_days,
+        array_agg(distinct device.category)[offset(0)] as device,
+        array_agg(distinct geo.country)[offset(0)] as country
+      from
+        \`${ctx.project}.${tableRef}\`
+      group by
+        user_pseudo_id
+    `);
+  }
+}
