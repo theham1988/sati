@@ -2,7 +2,7 @@ js {
   const clients = require("includes/clients.js");
 
   for (const client of clients) {
-    const tableRef = `${client.source_dataset}.events_*`;
+    const tableRef = `\`${client.source_dataset}.events_*\``;
 
     publish(`${client.name}_users`, {
       type: "view",
