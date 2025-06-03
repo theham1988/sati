@@ -1,16 +1,16 @@
 module.exports = [
   {
-    name: "Barracuda_Phuket",
+    name: "barracuda_phuket",
     source_dataset: "analytics_485512127",
     output_schema: "barracuda_phuket_flattened"
   },
   {
-    name: "Island_Escape",
+    name: "island_escape",
     source_dataset: "analytics_427190025",
     output_schema: "island_escape_flattened"
   },
   {
-    name: "Roost_Glamping",
+    name: "roost_glamping",
     source_dataset: "analytics_399579048",
     output_schema: "roost_glamping_flattened"
   }
