@@ -7,7 +7,7 @@ for (const client of clients) {
   }).query(ctx => `
     SELECT
       user_pseudo_id,
-      MAX(first_touch_timestamp) AS first_touch,
+      MAX(user_first_touch_timestamp) AS first_touch,
       COUNT(DISTINCT event_name) AS event_count,
       COUNT(DISTINCT event_date) AS active_days,
       ARRAY_AGG(DISTINCT device.category)[OFFSET(0)] AS device,
