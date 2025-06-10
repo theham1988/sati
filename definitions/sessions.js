@@ -1,34 +1,61 @@
+// definitions/sessions.js
 const clients = require("includes/clients.js");
 const metrics = require("includes/shared_metrics/metrics.js");
 
 for (const client of clients) {
   publish(`${client.name}_sessions`, {
     type: "view",
-    schema: client.output_schema,
+    schema: client.output_schema
   }).query(ctx => `
+    /* ---------- 1.  Raw events, keep one row per hit ---------- */
     WITH base_events AS (
       SELECT
         user_pseudo_id,
-        (SELECT value.int_value FROM UNNEST(user_properties) WHERE key = "ga_session_id") AS session_id,
+
+        -- GA-provided session identifier lives in event_params
+        ( SELECT value.int_value
+          FROM   UNNEST(event_params)
+          WHERE  key = 'ga_session_id'
+        )                               AS session_id,
+
         event_timestamp,
         event_name,
-        ${metrics.device_category} AS device,
-        ${metrics.country} AS country
-      FROM \`${client.project_id}.${client.source_dataset}.events_*\`
+
+        /* traffic-source columns we’ll later aggregate on */
+        traffic_source.name    AS campaign,
+        traffic_source.source  AS source,
+        traffic_source.medium  AS medium,
+
+        ${metrics.device_category}      AS device,
+        ${metrics.country}              AS country
+      FROM \`${ctx.project}.${client.source_dataset}.events_*\`
       WHERE event_name IS NOT NULL
     )
 
+    /* ---------- 2.  Roll up one row per session ---------- */
     SELECT
       session_id,
       user_pseudo_id,
-      MIN(event_timestamp) AS session_start,
-      MAX(event_timestamp) - MIN(event_timestamp) AS session_duration,
-      COUNT(*) AS event_count,
-      MAX(IF(event_name = 'user_engagement', 1, 0)) AS engaged_session,
+
+      MIN(event_timestamp)                            AS session_start,
+      MAX(event_timestamp) - MIN(event_timestamp)     AS session_duration,
+      COUNT(*)                                        AS event_count,
+      MAX(IF(event_name = 'user_engagement',1,0))     AS engaged_session,
+
       device,
-      country
+      country,
+      campaign,
+      source,
+      medium
     FROM base_events
     WHERE session_id IS NOT NULL
-    GROUP BY session_id, user_pseudo_id, device, country
+    GROUP BY
+      session_id,
+      user_pseudo_id,
+      device,
+      country,
+      campaign,
+      source,
+      medium
   `);
 }
