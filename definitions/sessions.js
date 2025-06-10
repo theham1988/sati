@@ -1,38 +1,37 @@
 // definitions/sessions.js
-const clients = require("includes/clients.js");
-const metrics = require("includes/shared_metrics/metrics.js");
+const clients  = require("includes/clients.js");
+const metrics  = require("includes/shared_metrics/metrics.js");
 
 for (const client of clients) {
   publish(`${client.name}_sessions`, {
-    type: "view",
-    schema: client.output_schema
+    type:   "view",
+    schema: client.output_schema,
   }).query(ctx => `
-    /* ---------- 1.  Raw events, keep one row per hit ---------- */
+    /* ---------- 1. raw events ---------- */
     WITH base_events AS (
       SELECT
         user_pseudo_id,
 
-        -- GA-provided session identifier lives in event_params
-        ( SELECT value.int_value
-          FROM   UNNEST(event_params)
-          WHERE  key = 'ga_session_id'
-        )                               AS session_id,
+        -- GA4 session id is stored in event_params
+        (SELECT value.int_value
+         FROM   UNNEST(event_params)
+         WHERE  key = 'ga_session_id')     AS session_id,
 
         event_timestamp,
         event_name,
 
-        /* traffic-source columns we’ll later aggregate on */
-        traffic_source.name    AS campaign,
-        traffic_source.source  AS source,
-        traffic_source.medium  AS medium,
+        -- marketing dims
+        traffic_source.name   AS campaign,
+        traffic_source.source AS source,
+        traffic_source.medium AS medium,
 
-        ${metrics.device_category}      AS device,
-        ${metrics.country}              AS country
-      FROM \`${ctx.project}.${client.source_dataset}.events_*\`
+        ${metrics.device_category}         AS device,
+        ${metrics.country}                 AS country
+      FROM \`${client.project_id}.${client.source_dataset}.events_*\`
       WHERE event_name IS NOT NULL
     )
 
-    /* ---------- 2.  Roll up one row per session ---------- */
+    /* ---------- 2. roll up per session ---------- */
     SELECT
       session_id,
       user_pseudo_id,
@@ -57,5 +56,5 @@ for (const client of clients) {
       campaign,
       source,
       medium
-  `);
-}
+  `);           /* <-- closes query() */
+}               /* <-- closes for-loop */
