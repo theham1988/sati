@@ -20,7 +20,7 @@ module.exports = [{
     {
         name: "bydlofts_phuket",
         project_id: "sublime-elixir-458201-r4",
-        source_dataset: "analytics_4081087469",
+        source_dataset: "analytics_333062874",
         output_schema: "bydlofts_phuket",
         google_ads_dataset: "bydlofts_phuket"
     },
