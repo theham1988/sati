@@ -15,7 +15,7 @@ module.exports = [{
         project_id: "sublime-elixir-458201-r4",
         source_dataset: "analytics_399579048",
         output_schema: "roost_glamping"
-    }
+    },
 
     {
         name: "bydlofts_phuket",
