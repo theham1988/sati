@@ -49,4 +49,16 @@ module.exports = [
   ga4_property_id: null,
   has_website: false
 },
+
+{
+  name: "gofresh_ct",
+  project_id: "sublime-elixir-458201-r4",
+  source_dataset: null,
+  output_schema: "gofresh_ct",
+  google_ads_dataset: "gofresh_ct",
+  google_ads_customer_id: "8545745456",
+  business_type: "restaurant",
+  ga4_property_id: null,
+  has_website: false
+},
 ];
