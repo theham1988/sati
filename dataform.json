@@ -1,0 +1,10 @@
+{
+  "warehouse": "bigquery",
+  "defaultSchema": "dataform",
+  "assertionSchema": "dataform_assertions",
+  "defaultDatabase": "sublime-elixir-458201-r4",
+  "defaultLocation": "US",
+  "vars": {
+    "project_id": "sublime-elixir-458201-r4"
+  }
+} 

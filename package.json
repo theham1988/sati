@@ -1,0 +1,28 @@
+{
+  "name": "ga4-dataform-project",
+  "version": "1.0.0",
+  "description": "Dataform project for GA4 BigQuery data transformations",
+  "main": "index.js",
+  "scripts": {
+    "compile": "dataform compile",
+    "run": "dataform run",
+    "test": "dataform run --actions assertions",
+    "dry-run": "dataform run --dry-run",
+    "validate": "dataform compile && dataform run --actions assertions"
+  },
+  "dependencies": {
+    "@dataform/cli": "^2.0.0"
+  },
+  "devDependencies": {
+    "@dataform/core": "^2.0.0"
+  },
+  "keywords": [
+    "dataform",
+    "bigquery",
+    "ga4",
+    "analytics",
+    "data-transformation"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+} 
