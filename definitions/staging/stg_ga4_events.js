@@ -66,17 +66,17 @@ for (const client of clients) {
         ) AS page,
         
         STRUCT(
-          ecommerce.transaction_id,
-          ecommerce.value AS total_value,
-          ecommerce.currency,
-          ecommerce.tax,
-          ecommerce.shipping,
-          ecommerce.coupon,
-          ecommerce.payment_type,
-          ecommerce.affiliation
+          (SELECT value.string_value FROM UNNEST(event_params) WHERE key = "transaction_id") AS transaction_id,
+          (SELECT value.double_value FROM UNNEST(event_params) WHERE key = "value") AS total_value,
+          (SELECT value.string_value FROM UNNEST(event_params) WHERE key = "currency") AS currency,
+          (SELECT value.double_value FROM UNNEST(event_params) WHERE key = "tax") AS tax,
+          (SELECT value.double_value FROM UNNEST(event_params) WHERE key = "shipping") AS shipping,
+          (SELECT value.string_value FROM UNNEST(event_params) WHERE key = "coupon") AS coupon,
+          (SELECT value.string_value FROM UNNEST(event_params) WHERE key = "payment_type") AS payment_type,
+          (SELECT value.string_value FROM UNNEST(event_params) WHERE key = "affiliation") AS affiliation
         ) AS ecommerce,
         
-        ARRAY(
+        IFNULL(ARRAY(
           SELECT AS STRUCT
             item_id,
             item_name,
@@ -98,7 +98,7 @@ for (const client of clients) {
             promotion_id,
             promotion_name
           FROM UNNEST(items)
-        ) AS items,
+        ), []) AS items,
         
         STRUCT(
           (SELECT value.string_value FROM UNNEST(event_params) WHERE key = "gclid") AS gclid,
