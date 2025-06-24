@@ -15,7 +15,7 @@ for (const client of clients) {
   }).query(() => `
     WITH ads_performance AS (
       SELECT
-        date AS segments_date,
+        segments_date,
         customer_id,
         customer_descriptive_name AS customer_name,
         
@@ -48,7 +48,7 @@ for (const client of clients) {
         CURRENT_TIMESTAMP() AS _dataform_loaded_at
         
       FROM \`${client.project_id}.${client.google_ads_dataset}.p_ads_CampaignBasicStats_${client.google_ads_customer_id}\`
-      WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)
+      WHERE segments_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)
     )
     
     SELECT * FROM ads_performance

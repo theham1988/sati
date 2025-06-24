@@ -94,7 +94,7 @@ for (const client of clients) {
             location_id,
             item_list_name,
             item_list_id,
-            index,
+            \`index\`,
             promotion_id,
             promotion_name
           FROM UNNEST(items)
