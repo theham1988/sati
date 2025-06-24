@@ -5,15 +5,14 @@ for (const client of clients) {
   if (!client.google_ads_dataset || !client.google_ads_customer_id) continue;
   
   publish(`stg_${client.name}_google_ads_cost`, {
-    type: "incremental",
-    uniqueKey: ["segments_date", "campaign_id", "ad_group_id"],
+    type: "table",
     schema: client.output_schema,
     tags: ["staging"],
     bigquery: {
       partitionBy: "segments_date",
-      clusterBy: ["campaign_id", "ad_group_id"]
+      clusterBy: ["campaign_id"]
     }
-  }).query(ctx => `
+  }).query(() => `
     WITH ads_performance AS (
       SELECT
         date AS segments_date,
@@ -50,7 +49,6 @@ for (const client of clients) {
         
       FROM \`${client.project_id}.${client.google_ads_dataset}.p_ads_CampaignBasicStats_${client.google_ads_customer_id}\`
       WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)
-        ${ctx.when(ctx.incremental(), `AND date > (SELECT COALESCE(MAX(segments_date), DATE('1970-01-01')) FROM ${ctx.self()})`)}
     )
     
     SELECT * FROM ads_performance
