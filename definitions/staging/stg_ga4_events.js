@@ -115,7 +115,7 @@ for (const client of clients) {
         
       FROM \`${client.project_id}.${client.source_dataset}.events_*\`
       WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY))
-        ${ctx.when(ctx.incremental(), `AND event_timestamp > (SELECT MAX(event_timestamp) FROM ${ctx.self()})`)}
+        ${ctx.when(ctx.incremental(), `AND event_timestamp > (SELECT COALESCE(MAX(event_timestamp), TIMESTAMP('1970-01-01')) FROM ${ctx.self()})`)}
     )
     
     SELECT * FROM flattened_events

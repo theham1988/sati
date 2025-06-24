@@ -50,7 +50,7 @@ for (const client of clients) {
         
       FROM \`${client.project_id}.${client.google_ads_dataset}.p_ads_CampaignBasicStats_${client.google_ads_customer_id}\`
       WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)
-        ${ctx.when(ctx.incremental(), `AND date > (SELECT MAX(segments_date) FROM ${ctx.self()})`)}
+        ${ctx.when(ctx.incremental(), `AND date > (SELECT COALESCE(MAX(segments_date), DATE('1970-01-01')) FROM ${ctx.self()})`)}
     )
     
     SELECT * FROM ads_performance
