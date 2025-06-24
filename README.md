@@ -1,22 +1,26 @@
-# GA4 BigQuery Dataform Project
+# Phuket Hospitality Marketing Analytics Platform
 
-This Dataform project transforms Google Analytics 4 (GA4) BigQuery data exports for multiple clients, providing standardized analytics tables and data quality checks.
+AI-powered marketing analytics platform for hospitality businesses in Phuket, providing unified ROAS tracking across GA4 and Google Ads data with advanced attribution and performance insights.
 
 ## Project Structure
 
 ```
 sati/
-├── dataform.json                 # Dataform configuration
 ├── workflow_settings.yaml        # Workflow settings
 ├── includes/
 │   └── clients.js               # Client configurations
 ├── definitions/                 # SQL transformations
-│   ├── user.js                 # User-level aggregations
-│   ├── sessions.js             # Session-level data
-│   ├── events.js               # Raw event data
-│   ├── conversions.js          # Conversion events
-│   └── daily_metrics.js        # Daily aggregated metrics
-└── assertions/                 # Data quality tests
+│   ├── staging/                 # Raw data ingestion
+│   │   ├── stg_ga4_events.js   # Flattened GA4 events
+│   │   └── stg_google_ads_cost.js # Google Ads performance
+│   ├── intermediate/            # Business logic layer
+│   │   ├── int_sessions_enriched.js # Session aggregations
+│   │   └── int_conversions_attributed.js # Conversion attribution
+│   ├── marts/                   # Business-ready datasets
+│   │   ├── mart_campaign_performance.js # ROAS & metrics
+│   │   └── mart_executive_dashboard.js # Executive KPIs
+│   └── backup/                  # Legacy transformations
+└── assertions/                  # Data quality tests
     ├── user_id_not_null.js
     ├── conversion_currency_and_revenue_not_null.js
     ├── device_and_country_populated.js
@@ -49,48 +53,59 @@ Each client is configured with the following properties:
 5. **gofresh_fuel** - Restaurant (no website)
 6. **gofresh_ct** - Restaurant (no website)
 
-## Data Transformations
+## Data Architecture
 
-### 1. User Table (`user.js`)
-Comprehensive user-level aggregations including:
-- First and last visit information
-- Engagement metrics (events, sessions, active days)
-- Conversion metrics (purchases, leads, revenue)
-- Device and location preferences
-- Traffic source preferences
-- User segmentation (frequency, type)
+### Staging Layer (`definitions/staging/`)
 
-### 2. Sessions Table (`sessions.js`)
-Session-level data including:
-- Session identification
-- Traffic source information
-- Device and geographic data
-- Page location
+#### 1. GA4 Events (`stg_ga4_events.js`)
+- Flattens nested GA4 event data structure
+- Extracts all relevant event parameters
+- Implements incremental loading with timestamp watermarks
+- Partitioned by event date for performance
+- Includes e-commerce data, click IDs (GCLID), and custom parameters
 
-### 3. Events Table (`events.js`)
-Raw event data with comprehensive parameters:
-- Event identification and timing
-- User and session information
-- Traffic source details
-- Device and geographic information
-- Page information
-- E-commerce parameters
-- Form and engagement metrics
+#### 2. Google Ads Cost (`stg_google_ads_cost.js`)
+- Ingests ad performance data from Google Ads
+- Tracks cost, clicks, impressions at ad group level
+- Supports incremental daily updates
+- Links to GA4 data via GCLID for attribution
 
-### 4. Conversions Table (`conversions.js`)
-Conversion events (purchases, leads) with:
-- Revenue and currency information
-- Traffic source attribution
-- Geographic data
+### Intermediate Layer (`definitions/intermediate/`)
 
-### 5. Daily Metrics Table (`daily_metrics.js`)
-Daily aggregated KPIs including:
-- User and session metrics
-- Conversion metrics
-- Revenue tracking
-- Traffic source breakdown
-- Device and geographic distribution
-- Calculated rates and percentages
+#### 1. Enriched Sessions (`int_sessions_enriched.js`)
+- Aggregates events into session-level metrics
+- Calculates session duration, bounce rate, pages viewed
+- Applies channel grouping logic (Google Ads, Facebook, Organic, etc.)
+- Identifies conversion sessions and engagement patterns
+- Creates attribution IDs for ROAS calculation
+
+#### 2. Attributed Conversions (`int_conversions_attributed.js`)
+- Identifies and categorizes conversion events
+- Links conversions to originating sessions
+- Classifies customers (New, Returning, Reactivated)
+- Calculates time-to-conversion metrics
+- Preserves full e-commerce transaction details
+
+### Marts Layer (`definitions/marts/`)
+
+#### 1. Campaign Performance (`mart_campaign_performance.js`)
+- Daily granularity with full attribution
+- Unified view of GA4 sessions and Google Ads costs
+- Calculates key metrics:
+  - ROAS (Return on Ad Spend)
+  - CPA (Cost Per Acquisition)
+  - Conversion rates
+  - Average order value
+  - New customer revenue ratio
+- Handles both scenarios: with and without Google Ads data
+
+#### 2. Executive Dashboard (`mart_executive_dashboard.js`)
+- High-level KPIs with period-over-period comparisons
+- JSON aggregations for easy API consumption:
+  - Channel performance breakdown
+  - Top 10 campaigns by revenue
+  - 30-day trend analysis
+- Designed for real-time dashboard integration
 
 ## Data Quality Assertions
 
@@ -127,14 +142,23 @@ gcloud auth application-default login
 # Compile the project
 dataform compile
 
-# Run assertions (data quality tests)
-dataform run --actions assertions
+# Initial setup - run staging tables first
+dataform run --tags staging
+
+# Run intermediate transformations
+dataform run --tags intermediate
+
+# Run mart tables
+dataform run --tags marts
 
 # Run all transformations
 dataform run
 
 # Run specific client transformations
-dataform run --actions "barracuda_phuket_*"
+dataform run --actions "*barracuda_phuket*"
+
+# Run with full refresh (for initial load)
+dataform run --full-refresh
 ```
 
 ### Adding a New Client
@@ -194,6 +218,65 @@ dataform run --actions "client_name_events" --dry-run
 # View generated SQL
 dataform compile --output-dir ./compiled
 ```
+
+## ROAS Optimization Features
+
+### Attribution Methodology
+- **GCLID Matching**: Direct attribution for Google Ads clicks
+- **Session-Based Attribution**: Links costs to converting sessions
+- **Multi-Touch Support**: Tracks user journey across sessions
+- **Channel Grouping**: Unified performance view across platforms
+
+### Key Metrics Calculated
+1. **ROAS (Return on Ad Spend)**: Revenue / Cost ratio
+2. **CPA (Cost Per Acquisition)**: Cost / Conversions
+3. **LTV Indicators**: New vs returning customer revenue
+4. **Engagement Metrics**: Session duration, pages viewed, bounce rate
+5. **Conversion Velocity**: Time from first touch to conversion
+
+### Use Cases
+- **Budget Optimization**: Identify high-ROAS campaigns for scaling
+- **Channel Mix Analysis**: Compare performance across marketing channels  
+- **Customer Journey Insights**: Understand conversion paths
+- **Seasonality Tracking**: Monitor performance trends over time
+
+## Query Examples
+
+### Get Current Month ROAS by Channel
+```sql
+SELECT 
+  channel_grouping,
+  SUM(revenue) as total_revenue,
+  SUM(cost) as total_cost,
+  SAFE_DIVIDE(SUM(revenue), SUM(cost)) as roas
+FROM `project.dataset.mart_clientname_campaign_performance`
+WHERE DATE_TRUNC(date, MONTH) = DATE_TRUNC(CURRENT_DATE(), MONTH)
+GROUP BY channel_grouping
+ORDER BY total_revenue DESC
+```
+
+### Find Underperforming Campaigns
+```sql
+SELECT 
+  campaign,
+  channel_grouping,
+  SUM(cost) as total_cost,
+  SUM(revenue) as total_revenue,
+  SAFE_DIVIDE(SUM(revenue), SUM(cost)) as roas
+FROM `project.dataset.mart_clientname_campaign_performance`
+WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
+  AND cost > 100  -- Minimum spend threshold
+GROUP BY campaign, channel_grouping
+HAVING roas < 2  -- Below target ROAS
+ORDER BY total_cost DESC
+```
+
+## Future Enhancements
+1. **Predictive ROAS Modeling**: ML-based campaign performance forecasting
+2. **Automated Bid Recommendations**: Real-time bidding strategy suggestions
+3. **Cross-Property Analytics**: Unified view across all Phuket properties
+4. **WhatsApp/LINE Integration**: Track messaging app conversions
+5. **Competitor Intelligence**: Market share and pricing insights
 
 ## Contributing
 
