@@ -33,8 +33,8 @@ for (const client of clients) {
         traffic_source.source,
         traffic_source.medium,
         traffic_source.name AS campaign,
-        traffic_source.term AS keyword,
-        traffic_source.content AS ad_content,
+        (SELECT value.string_value FROM UNNEST(event_params) WHERE key = "term") AS keyword,
+        (SELECT value.string_value FROM UNNEST(event_params) WHERE key = "content") AS ad_content,
         
         STRUCT(
           device.category AS category,
