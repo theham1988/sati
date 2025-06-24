@@ -1,7 +1,8 @@
 const clients = require("includes/clients.js");
 
 for (const client of clients) {
-  if (!client.google_ads_dataset) continue;
+  // Only process clients that have Google Ads data configured
+  if (!client.google_ads_dataset || !client.google_ads_customer_id) continue;
   
   publish(`stg_${client.name}_google_ads_cost`, {
     type: "incremental",
@@ -15,7 +16,7 @@ for (const client of clients) {
   }).query(ctx => `
     WITH ads_performance AS (
       SELECT
-        segments_date,
+        date AS segments_date,
         customer_id,
         customer_descriptive_name AS customer_name,
         
@@ -48,8 +49,8 @@ for (const client of clients) {
         CURRENT_TIMESTAMP() AS _dataform_loaded_at
         
       FROM \`${client.project_id}.${client.google_ads_dataset}.p_ads_CampaignBasicStats_${client.google_ads_customer_id}\`
-      WHERE segments.date >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY)
-        ${ctx.when(ctx.incremental(), `AND segments.date > (SELECT MAX(segments_date) FROM ${ctx.self()})`)}
+      WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)
+        ${ctx.when(ctx.incremental(), `AND date > (SELECT MAX(segments_date) FROM ${ctx.self()})`)}
     )
     
     SELECT * FROM ads_performance

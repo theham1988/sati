@@ -1,6 +1,7 @@
 const clients = require("includes/clients.js");
 
 for (const client of clients) {
+  // Only process clients that have GA4 data configured
   if (!client.source_dataset) continue;
   
   publish(`stg_${client.name}_ga4_events`, {
@@ -113,7 +114,7 @@ for (const client of clients) {
         CURRENT_TIMESTAMP() AS _dataform_loaded_at
         
       FROM \`${client.project_id}.${client.source_dataset}.events_*\`
-      WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY))
+      WHERE _TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY))
         ${ctx.when(ctx.incremental(), `AND event_timestamp > (SELECT MAX(event_timestamp) FROM ${ctx.self()})`)}
     )
     
