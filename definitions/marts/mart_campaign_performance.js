@@ -64,7 +64,7 @@ for (const client of clients) {
       
       daily_costs AS (
         SELECT
-          segments_date AS date,
+          date,
           'Google Ads' AS channel_grouping,
           'google' AS source,
           'cpc' AS medium,
@@ -229,7 +229,7 @@ for (const client of clients) {
       return `
       WITH daily_costs AS (
         SELECT
-          segments_date AS date,
+          date,
           'Google Ads' AS channel_grouping,
           'google' AS source,
           'cpc' AS medium,

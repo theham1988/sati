@@ -19,9 +19,9 @@ for (const client of clients) {
         session_id,
         MIN(event_timestamp) AS session_start_timestamp,
         MAX(event_timestamp) AS session_end_timestamp,
-        MIN(event_datetime) AS session_start_time,
-        MAX(event_datetime) AS session_end_time,
-        DATE(MIN(event_datetime)) AS session_date,
+        DATETIME(TIMESTAMP_MICROS(MIN(event_timestamp))) AS session_start_time,
+        DATETIME(TIMESTAMP_MICROS(MAX(event_timestamp))) AS session_end_time,
+        DATE(TIMESTAMP_MICROS(MIN(event_timestamp))) AS session_date,
         
         COUNT(DISTINCT event_name) AS unique_events,
         COUNT(*) AS total_events,
