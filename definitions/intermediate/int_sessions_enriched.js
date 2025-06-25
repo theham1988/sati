@@ -51,7 +51,7 @@ for (const client of clients) {
     session_metrics AS (
       SELECT
         *,
-        TIMESTAMP_DIFF(session_end_timestamp, session_start_timestamp, SECOND) AS session_duration_seconds,
+        TIMESTAMP_DIFF(TIMESTAMP_MICROS(session_end_timestamp), TIMESTAMP_MICROS(session_start_timestamp), SECOND) AS session_duration_seconds,
         
         CASE 
           WHEN total_events = 1 THEN 1
