@@ -41,9 +41,7 @@ for (const client of clients) {
         ${client.conversion_events ? `SUM(CASE WHEN event_name IN (${client.conversion_events.map(e => `'${e}'`).join(', ')}) THEN revenue ELSE 0 END)` : '0'} AS session_revenue,
         ${client.conversion_events ? `MAX(CASE WHEN event_name IN (${client.conversion_events.map(e => `'${e}'`).join(', ')}) THEN currency END)` : 'NULL'} AS currency,
         
-        STRING_AGG(DISTINCT gclid) AS gclids,
-        
-        MAX(_dataform_loaded_at) AS _dataform_loaded_at
+        STRING_AGG(DISTINCT gclid) AS gclids
         
       FROM ${ctx.ref(`stg_${client.name}_ga4_events`)}
       WHERE session_id IS NOT NULL
@@ -81,6 +79,9 @@ for (const client of clients) {
       FROM session_events
     )
     
-    SELECT * FROM session_metrics
+    SELECT 
+      *,
+      CURRENT_TIMESTAMP() AS _dataform_loaded_at
+    FROM session_metrics
   `);
 }
