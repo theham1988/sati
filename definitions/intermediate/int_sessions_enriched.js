@@ -30,17 +30,9 @@ for (const client of clients) {
         MAX(CASE WHEN event_name = 'session_start' THEN medium END) AS medium,
         MAX(CASE WHEN event_name = 'session_start' THEN campaign END) AS campaign,
         
-        MAX(CASE WHEN event_name = 'session_start' THEN device.category END) AS device_category,
-        MAX(CASE WHEN event_name = 'session_start' THEN device.browser END) AS browser,
+        MAX(CASE WHEN event_name = 'session_start' THEN device_category END) AS device_category,
         
-        MAX(CASE WHEN event_name = 'session_start' THEN geo.country END) AS country,
-        MAX(CASE WHEN event_name = 'session_start' THEN geo.region END) AS region,
-        MAX(CASE WHEN event_name = 'session_start' THEN geo.city END) AS city,
-        
-        ARRAY_AGG(DISTINCT page.page_location IGNORE NULLS) AS pages_viewed,
-        COUNT(DISTINCT page.page_location) AS unique_pages_viewed,
-        
-        MAX(engagement_time_msec) AS total_engagement_time_msec,
+        MAX(CASE WHEN event_name = 'session_start' THEN country END) AS country,
         
         -- Dynamic conversions based on client configuration
         ${client.conversion_events ? `MAX(CASE WHEN event_name IN (${client.conversion_events.map(e => `'${e}'`).join(', ')}) THEN 1 ELSE 0 END)` : '0'} AS has_conversion,
@@ -49,9 +41,7 @@ for (const client of clients) {
         ${client.conversion_events ? `SUM(CASE WHEN event_name IN (${client.conversion_events.map(e => `'${e}'`).join(', ')}) THEN revenue ELSE 0 END)` : '0'} AS session_revenue,
         ${client.conversion_events ? `MAX(CASE WHEN event_name IN (${client.conversion_events.map(e => `'${e}'`).join(', ')}) THEN currency END)` : 'NULL'} AS currency,
         
-        STRING_AGG(DISTINCT click_ids.gclid IGNORE NULLS) AS gclids,
-        
-        MAX(session_number) AS session_number,
+        STRING_AGG(DISTINCT gclid IGNORE NULLS) AS gclids,
         
         MAX(_dataform_loaded_at) AS _dataform_loaded_at
         
