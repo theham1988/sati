@@ -29,11 +29,9 @@ for (const client of clients) {
         MAX(CASE WHEN event_name = 'session_start' THEN source END) AS source,
         MAX(CASE WHEN event_name = 'session_start' THEN medium END) AS medium,
         MAX(CASE WHEN event_name = 'session_start' THEN campaign END) AS campaign,
-        MAX(CASE WHEN event_name = 'session_start' THEN keyword END) AS keyword,
         MAX(CASE WHEN event_name = 'session_start' THEN ad_content END) AS ad_content,
         
         MAX(CASE WHEN event_name = 'session_start' THEN device.category END) AS device_category,
-        MAX(CASE WHEN event_name = 'session_start' THEN device.os END) AS operating_system,
         MAX(CASE WHEN event_name = 'session_start' THEN device.browser END) AS browser,
         
         MAX(CASE WHEN event_name = 'session_start' THEN geo.country END) AS country,
@@ -45,11 +43,12 @@ for (const client of clients) {
         
         MAX(engagement_time_msec) AS total_engagement_time_msec,
         
-        MAX(CASE WHEN event_name = 'purchase' THEN 1 ELSE 0 END) AS has_conversion,
-        MAX(CASE WHEN event_name IN ('add_to_cart', 'begin_checkout') THEN 1 ELSE 0 END) AS has_engagement,
+        -- Dynamic conversions based on client configuration
+        ${client.conversion_events ? `MAX(CASE WHEN event_name IN (${client.conversion_events.map(e => `'${e}'`).join(', ')}) THEN 1 ELSE 0 END)` : '0'} AS has_conversion,
+        ${client.engagement_events ? `MAX(CASE WHEN event_name IN (${client.engagement_events.map(e => `'${e}'`).join(', ')}) THEN 1 ELSE 0 END)` : '0'} AS has_engagement,
         
-        SUM(CASE WHEN event_name = 'purchase' THEN ecommerce.total_value ELSE 0 END) AS session_revenue,
-        MAX(CASE WHEN event_name = 'purchase' THEN ecommerce.currency END) AS currency,
+        ${client.conversion_events ? `SUM(CASE WHEN event_name IN (${client.conversion_events.map(e => `'${e}'`).join(', ')}) THEN revenue ELSE 0 END)` : '0'} AS session_revenue,
+        ${client.conversion_events ? `MAX(CASE WHEN event_name IN (${client.conversion_events.map(e => `'${e}'`).join(', ')}) THEN currency END)` : 'NULL'} AS currency,
         
         STRING_AGG(DISTINCT click_ids.gclid IGNORE NULLS) AS gclids,
         
