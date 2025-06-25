@@ -17,32 +17,22 @@ for (const client of clients) {
       SELECT
         user_pseudo_id,
         event_timestamp,
-        event_datetime,
-        DATE(event_datetime) AS conversion_date,
+        DATE(TIMESTAMP_MICROS(event_timestamp)) AS conversion_date,
         event_name AS conversion_type,
         session_id,
         
         source,
         medium,
         campaign,
-        keyword,
-        ad_content,
         
-        device.category AS device_category,
-        geo.country,
-        geo.region,
-        geo.city,
+        device_category,
+        country,
         
-        ecommerce.transaction_id,
-        ecommerce.total_value AS revenue,
-        ecommerce.currency,
-        ecommerce.tax,
-        ecommerce.shipping,
-        ecommerce.coupon,
+        transaction_id,
+        revenue,
+        currency,
         
-        items,
-        
-        click_ids.gclid,
+        gclid,
         
         CASE
           WHEN event_name = 'purchase' THEN 'Purchase'
@@ -53,7 +43,7 @@ for (const client of clients) {
           ELSE 'Other'
         END AS conversion_category,
         
-        _dataform_loaded_at
+        CURRENT_TIMESTAMP() AS _dataform_loaded_at
         
       FROM ${ctx.ref(`stg_${client.name}_ga4_events`)}
       WHERE event_name IN (
@@ -73,11 +63,7 @@ for (const client of clients) {
         s.session_duration_seconds,
         s.channel_grouping,
         s.attribution_id,
-        s.session_number,
-        s.pages_viewed,
-        s.unique_pages_viewed,
-        
-        TIMESTAMP_DIFF(c.event_timestamp, s.session_start_timestamp, MINUTE) AS minutes_to_conversion,
+        TIMESTAMP_DIFF(TIMESTAMP_MICROS(c.event_timestamp), TIMESTAMP_MICROS(s.session_start_timestamp), MINUTE) AS minutes_to_conversion,
         
         ROW_NUMBER() OVER (
           PARTITION BY c.user_pseudo_id 

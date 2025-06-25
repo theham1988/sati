@@ -34,8 +34,7 @@ for (const client of clients) {
           COUNT(DISTINCT user_pseudo_id) AS users,
           COUNT(DISTINCT session_id) AS sessions,
           SUM(CASE WHEN is_bounce = 1 THEN 1 ELSE 0 END) AS bounces,
-          SUM(session_duration_seconds) / COUNT(*) AS avg_session_duration,
-          SUM(unique_pages_viewed) / COUNT(*) AS avg_pages_per_session
+          SUM(session_duration_seconds) / COUNT(*) AS avg_session_duration
           
         FROM ${ctx.ref(`int_${client.name}_sessions_enriched`)}
         GROUP BY 1, 2, 3, 4, 5
@@ -150,8 +149,7 @@ for (const client of clients) {
           COUNT(DISTINCT user_pseudo_id) AS users,
           COUNT(DISTINCT session_id) AS sessions,
           SUM(CASE WHEN is_bounce = 1 THEN 1 ELSE 0 END) AS bounces,
-          SUM(session_duration_seconds) / COUNT(*) AS avg_session_duration,
-          SUM(unique_pages_viewed) / COUNT(*) AS avg_pages_per_session
+          SUM(session_duration_seconds) / COUNT(*) AS avg_session_duration
           
         FROM ${ctx.ref(`int_${client.name}_sessions_enriched`)}
         GROUP BY 1, 2, 3, 4, 5
