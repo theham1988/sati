@@ -41,7 +41,7 @@ for (const client of clients) {
         ${client.conversion_events ? `SUM(CASE WHEN event_name IN (${client.conversion_events.map(e => `'${e}'`).join(', ')}) THEN revenue ELSE 0 END)` : '0'} AS session_revenue,
         ${client.conversion_events ? `MAX(CASE WHEN event_name IN (${client.conversion_events.map(e => `'${e}'`).join(', ')}) THEN currency END)` : 'NULL'} AS currency,
         
-        STRING_AGG(DISTINCT gclid IGNORE NULLS) AS gclids,
+        STRING_AGG(DISTINCT gclid) AS gclids,
         
         MAX(_dataform_loaded_at) AS _dataform_loaded_at
         
