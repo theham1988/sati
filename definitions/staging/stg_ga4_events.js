@@ -8,7 +8,7 @@ for (const client of clients) {
     schema: client.output_schema,
     tags: ["staging"],
     bigquery: {
-      partitionBy: "DATE(PARSE_DATE('%Y%m%d', event_date))",
+      partitionBy: "event_date_parsed",
       clusterBy: ["event_name", "user_pseudo_id"]
     }
   }).query(() => `
@@ -16,6 +16,7 @@ for (const client of clients) {
       -- Core fields for ROAS tracking
       event_timestamp,
       event_date,
+      PARSE_DATE('%Y%m%d', event_date) AS event_date_parsed,
       event_name,
       user_pseudo_id,
       
