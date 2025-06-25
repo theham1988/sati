@@ -8,7 +8,7 @@ for (const client of clients) {
     schema: client.output_schema,
     tags: ["staging"],
     bigquery: {
-      partitionBy: "event_date",
+      partitionBy: "DATE(PARSE_DATE('%Y%m%d', event_date))",
       clusterBy: ["event_name", "user_pseudo_id"]
     }
   }).query(() => `
