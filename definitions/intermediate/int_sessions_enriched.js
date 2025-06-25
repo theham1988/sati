@@ -29,7 +29,6 @@ for (const client of clients) {
         MAX(CASE WHEN event_name = 'session_start' THEN source END) AS source,
         MAX(CASE WHEN event_name = 'session_start' THEN medium END) AS medium,
         MAX(CASE WHEN event_name = 'session_start' THEN campaign END) AS campaign,
-        MAX(CASE WHEN event_name = 'session_start' THEN ad_content END) AS ad_content,
         
         MAX(CASE WHEN event_name = 'session_start' THEN device.category END) AS device_category,
         MAX(CASE WHEN event_name = 'session_start' THEN device.browser END) AS browser,
