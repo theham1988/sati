@@ -15,7 +15,7 @@ for (const client of clients) {
       -- Core fields for ROAS tracking
       segments_date AS date,
       campaign_id,
-      campaign_name,
+      campaign_base_campaign AS campaign_name,
       
       -- Cost and performance metrics
       metrics_cost_micros / 1000000.0 AS cost,
