@@ -89,7 +89,6 @@ for (const client of clients) {
           COALESCE(s.sessions, 0) AS sessions,
           COALESCE(s.bounces, 0) AS bounces,
           COALESCE(s.avg_session_duration, 0) AS avg_session_duration,
-          COALESCE(s.avg_pages_per_session, 0) AS avg_pages_per_session,
           
           COALESCE(c.transactions, 0) AS transactions,
           COALESCE(c.converting_users, 0) AS converting_users,
@@ -187,7 +186,6 @@ for (const client of clients) {
         COALESCE(s.sessions, 0) AS sessions,
         COALESCE(s.bounces, 0) AS bounces,
         COALESCE(s.avg_session_duration, 0) AS avg_session_duration,
-        COALESCE(s.avg_pages_per_session, 0) AS avg_pages_per_session,
         
         COALESCE(c.transactions, 0) AS transactions,
         COALESCE(c.converting_users, 0) AS converting_users,
@@ -254,7 +252,6 @@ for (const client of clients) {
         0 AS sessions,
         0 AS bounces,
         0 AS avg_session_duration,
-        0 AS avg_pages_per_session,
         
         transactions,
         0 AS converting_users,
