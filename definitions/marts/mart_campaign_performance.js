@@ -77,13 +77,29 @@ for (const client of clients) {
         GROUP BY 1, 2, 3, 4, 5
       ),
       
+      all_dimensions AS (
+        SELECT DISTINCT
+          date,
+          channel_grouping,
+          source,
+          medium,
+          campaign
+        FROM (
+          SELECT date, channel_grouping, source, medium, campaign FROM daily_sessions
+          UNION DISTINCT
+          SELECT date, channel_grouping, source, medium, campaign FROM daily_conversions
+          UNION DISTINCT
+          SELECT date, channel_grouping, source, medium, campaign FROM daily_costs
+        )
+      ),
+      
       combined_metrics AS (
         SELECT
-          COALESCE(s.date, c.date, co.date) AS date,
-          COALESCE(s.channel_grouping, c.channel_grouping, co.channel_grouping) AS channel_grouping,
-          COALESCE(s.source, c.source, co.source) AS source,
-          COALESCE(s.medium, c.medium, co.medium) AS medium,
-          COALESCE(s.campaign, c.campaign, co.campaign) AS campaign,
+          d.date,
+          d.channel_grouping,
+          d.source,
+          d.medium,
+          d.campaign,
           
           COALESCE(s.users, 0) AS users,
           COALESCE(s.sessions, 0) AS sessions,
@@ -103,19 +119,25 @@ for (const client of clients) {
           COALESCE(co.clicks, 0) AS clicks,
           COALESCE(co.impressions, 0) AS impressions
           
-        FROM daily_sessions s
-        FULL OUTER JOIN daily_conversions c
-          ON s.date = c.date
-          AND s.channel_grouping = c.channel_grouping
-          AND s.source = c.source
-          AND s.medium = c.medium
-          AND s.campaign = c.campaign
-        FULL OUTER JOIN daily_costs co
-          ON COALESCE(s.date, c.date) = co.date
-          AND COALESCE(s.channel_grouping, c.channel_grouping) = co.channel_grouping
-          AND COALESCE(s.source, c.source) = co.source
-          AND COALESCE(s.medium, c.medium) = co.medium
-          AND COALESCE(s.campaign, c.campaign) = co.campaign
+        FROM all_dimensions d
+        LEFT JOIN daily_sessions s
+          ON d.date = s.date
+          AND d.channel_grouping = s.channel_grouping
+          AND d.source = s.source
+          AND d.medium = s.medium
+          AND d.campaign = s.campaign
+        LEFT JOIN daily_conversions c
+          ON d.date = c.date
+          AND d.channel_grouping = c.channel_grouping
+          AND d.source = c.source
+          AND d.medium = c.medium
+          AND d.campaign = c.campaign
+        LEFT JOIN daily_costs co
+          ON d.date = co.date
+          AND d.channel_grouping = co.channel_grouping
+          AND d.source = co.source
+          AND d.medium = co.medium
+          AND d.campaign = co.campaign
       )
       
       SELECT
